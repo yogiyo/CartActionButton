@@ -42,6 +42,7 @@ public class CartActionButton: UIView {
     private lazy var containerView: UIView! = {
         let view = UIView(frame: .zero)
         view.backgroundColor = .white
+        view.layer.masksToBounds = true
         return view
     }()
 
@@ -115,9 +116,8 @@ public class CartActionButton: UIView {
     }
 
     public override func draw(_ rect: CGRect) {
-        containerView.layer.masksToBounds = true
-        containerView.layer.cornerRadius = rect.height / 2
-        adjustContainerLeft(constant: rect.width - rect.height)
+        super.draw(rect)
+        setupInitialViews(rect)
     }
 }
 
@@ -134,7 +134,10 @@ private extension CartActionButton {
         }
 
         let plused = UInt(count + 1)
-        countLabel.text = "\(min(plused, maximumCount))"
+
+        countLabel.excuteRolling(up: true) {
+            countLabel.text = "\(min(plused, maximumCount))"
+        }
 
         if plused == maximumCount {
             plusButton.isEnabled = false
@@ -146,8 +149,11 @@ private extension CartActionButton {
             expandButton(false)
             return
         }
+
         let minused = count - 1
-        countLabel.text = "\(max(minused, 1))"
+        countLabel.excuteRolling(up: false) {
+            countLabel.text = "\(max(minused, 1))"
+        }
 
         if minused < maximumCount {
             plusButton.isEnabled = true
@@ -158,10 +164,10 @@ private extension CartActionButton {
 // MARK: - Private
 private extension CartActionButton {
 
-    func adjustContainerLeft(constant: CGFloat) {
+    var isExpanded: Bool {
         let containerLeft = constraints.first {
             $0.firstItem as? UIView == containerView && $0.firstAttribute == .left }
-        containerLeft?.constant = constant
+        return containerLeft?.constant == 0
     }
 
     func expandButton(_ expand: Bool) {
@@ -176,10 +182,25 @@ private extension CartActionButton {
             self.plusButton.alpha = expand ? 1 : 0
         }
     }
+
+    func adjustContainerLeft(constant: CGFloat) {
+        let containerLeft = constraints.first {
+            $0.firstItem as? UIView == containerView && $0.firstAttribute == .left }
+        containerLeft?.constant = constant
+    }
 }
 
 // MARK: - Setup
 private extension CartActionButton {
+
+    func setupInitialViews(_ rect: CGRect) {
+        containerView.layer.cornerRadius = rect.height / 2
+        adjustContainerLeft(constant: rect.width - rect.height)
+        minusBtnContainerView.alpha = 0
+        cartButton.alpha = 1
+        plusButton.alpha = 0
+    }
+
     func setupView() {
         backgroundColor = .clear
         addSubview(containerView)
@@ -235,5 +256,17 @@ private extension CartActionButton {
             countLabel.leftAnchor.constraint(equalTo: minusBtnContainerView.rightAnchor),
             countLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
         ])
+    }
+}
+
+private extension UILabel {
+    func excuteRolling(up: Bool, animation: () -> Void) {
+        let transition = CATransition()
+        transition.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+        transition.type = .push
+        transition.subtype = up ? .fromTop : .fromBottom
+        transition.duration = 0.25
+        animation()
+        layer.add(transition, forKey: "CATransitionType.\(up ? "up" : "down")")
     }
 }
