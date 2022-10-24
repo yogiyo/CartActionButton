@@ -7,9 +7,24 @@
 
 import UIKit
 
-@IBDesignable
+// MARK: - CartActionButtonDelegate
+public protocol CartActionButtonDelegate: AnyObject {
+    func cartActionButton(_ cart: CartActionButton, didChangeQuantity: CartActionButton.QuantityChange)
+    func cartActionButton(_ cart: CartActionButton, didPreventChange: CartActionButton.QuantityChange)
+    func cartActionButton(_ cart: CartActionButton, didExpandChange isExpanded: Bool)
+}
+
+// MARK: -
+// MARK: - CartActionButton
 public class CartActionButton: UIView {
 
+    // MARK: - QuantityChange
+    public enum QuantityChange {
+        case up(Int)
+        case down(Int)
+    }
+
+    // MARK: - Size
     public enum Size {
         /// Small
         case S
@@ -17,6 +32,15 @@ public class CartActionButton: UIView {
         case M
         /// XLarge
         case L
+
+        init(string: String) {
+            switch string.uppercased() {
+            case "S": self = .S
+            case "M": self = .M
+            case "L": self = .L
+            default: self = .L
+            }
+        }
 
         var font: UIFont {
             switch self {
@@ -35,9 +59,11 @@ public class CartActionButton: UIView {
         }
     }
 
+    // MARK: - Private Const
+
     private let animateDuration = CGFloat(0.25)
 
-    private let defaultMinimumSize = CGSize(width: 34, height: 34)
+    // MARK: - Private Subview
 
     private lazy var containerView: UIView! = {
         let view = UIView(frame: .zero)
@@ -45,13 +71,11 @@ public class CartActionButton: UIView {
         view.layer.masksToBounds = true
         return view
     }()
-
     private lazy var cartBtnContainerView: UIView! = {
         let view = UIView(frame: .zero)
         view.backgroundColor = .clear
         return view
     }()
-
     private lazy var cartButton: UIButton! = {
         let button = UIButton(frame: .zero)
         button.setBackgroundImage(UIImage(named: "ic_cart"), for: .normal)
@@ -60,7 +84,6 @@ public class CartActionButton: UIView {
         button.addTarget(self, action: #selector(cartButtonAction(_:)), for: .touchUpInside)
         return button
     }()
-
     private lazy var plusButton: UIButton! = {
         let button = UIButton(frame: .zero)
         button.setBackgroundImage(UIImage(named: "ic_add"), for: .normal)
@@ -70,15 +93,12 @@ public class CartActionButton: UIView {
         button.alpha = 0
         return button
     }()
-
     private lazy var minusBtnContainerView: UIView! = {
         let view = UIView(frame: .zero)
         view.backgroundColor = .clear
         view.alpha = 0
         return view
     }()
-
-    /// 빼기 버튼
     private lazy var minusButton: UIButton! = {
         let button = UIButton(frame: .zero)
         button.setBackgroundImage(UIImage(named: "ic_remove"), for: .normal)
@@ -87,7 +107,6 @@ public class CartActionButton: UIView {
         button.addTarget(self, action: #selector(minusButtonAction(_:)), for: .touchUpInside)
         return button
     }()
-
     private lazy var countLabel: UILabel! = {
         let label = UILabel()
         label.textAlignment = .center
@@ -96,12 +115,25 @@ public class CartActionButton: UIView {
         return label
     }()
 
+    // MARK: - Public Variable
 
-    public lazy var minimumSize: CGSize = defaultMinimumSize
+    @IBInspectable
+    public var maximumCount: Int = Int.max
+
+    @IBInspectable
+    public var ibSize: String = "L" {
+        didSet {
+            size = Size(string: ibSize)
+        }
+    }
 
     public var size: Size = .L
 
-    public var maximumCount = UInt(9)
+    public var quatity: Int { Int(countLabel.text ?? "1") ?? 1 }
+
+    public weak var delegate: CartActionButtonDelegate?
+
+    // MARK: - Lifecycle
 
     public override init(frame: CGRect) {
         super.init(frame: frame)
@@ -119,6 +151,19 @@ public class CartActionButton: UIView {
         super.draw(rect)
         setupInitialViews(rect)
     }
+
+    public override func awakeFromNib() {
+        super.awakeFromNib()
+        self.tintColor = tintColor
+    }
+
+    public override var tintColor: UIColor! {
+        didSet {
+            cartButton.tintColor = tintColor
+            plusButton.tintColor = tintColor
+            minusButton.tintColor = tintColor
+        }
+    }
 }
 
 // MARK: - Action
@@ -133,11 +178,13 @@ private extension CartActionButton {
             return
         }
 
-        let plused = UInt(count + 1)
+        let plused = Int(count + 1)
+        let qc = QuantityChange.up(plused)
 
-        countLabel.excuteRolling(up: true) {
+        countLabel.excuteRolling(direction: .init(qc: qc)) {
             countLabel.text = "\(min(plused, maximumCount))"
         }
+        delegate?.cartActionButton(self, didChangeQuantity: qc)
 
         if plused == maximumCount {
             plusButton.isEnabled = false
@@ -151,9 +198,11 @@ private extension CartActionButton {
         }
 
         let minused = count - 1
-        countLabel.excuteRolling(up: false) {
+        let qc = QuantityChange.down(minused)
+        countLabel.excuteRolling(direction: .init(qc: qc)) {
             countLabel.text = "\(max(minused, 1))"
         }
+        delegate?.cartActionButton(self, didChangeQuantity: qc)
 
         if minused < maximumCount {
             plusButton.isEnabled = true
@@ -172,9 +221,11 @@ private extension CartActionButton {
 
     func expandButton(_ expand: Bool) {
         adjustContainerLeft(constant: expand ? 0 : bounds.width - bounds.height)
-        UIView.animate(withDuration: animateDuration, delay: 0, options: .curveEaseInOut) {
+        UIView.animate(withDuration: animateDuration, delay: 0, options: .curveEaseInOut, animations: {
             self.layoutIfNeeded()
-        }
+        }, completion: { _ in
+            self.delegate?.cartActionButton(self, didExpandChange: expand)
+        })
 
         UIView.transition(with: cartButton, duration: animateDuration, options: .transitionCrossDissolve) {
             self.minusBtnContainerView.alpha = expand ? 1 : 0
@@ -259,14 +310,38 @@ private extension CartActionButton {
     }
 }
 
+// MARK: -
+// MARK: - UILabel extension
 private extension UILabel {
-    func excuteRolling(up: Bool, animation: () -> Void) {
+
+    enum RollingDirection: String {
+        case up
+        case down
+
+        init(qc: CartActionButton.QuantityChange) {
+            switch qc {
+            case .up: self = .up
+            case .down: self = .down
+            }
+        }
+
+        var transitionSubType: CATransitionSubtype {
+            switch self {
+            case .up: return .fromTop
+            case .down: return .fromBottom
+            }
+        }
+
+        var transitionKey: String { "CATransitionType.\(self.rawValue)" }
+    }
+
+    func excuteRolling(direction: RollingDirection, animation: () -> Void) {
         let transition = CATransition()
         transition.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
         transition.type = .push
-        transition.subtype = up ? .fromTop : .fromBottom
+        transition.subtype = direction.transitionSubType
         transition.duration = 0.25
         animation()
-        layer.add(transition, forKey: "CATransitionType.\(up ? "up" : "down")")
+        layer.add(transition, forKey: direction.transitionKey)
     }
 }
