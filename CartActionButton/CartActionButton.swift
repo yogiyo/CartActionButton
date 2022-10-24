@@ -50,6 +50,14 @@ public class CartActionButton: UIView {
             }
         }
 
+        var boldFont: UIFont {
+            switch self {
+            case .S: return .systemFont(ofSize: 14, weight: .bold)
+            case .M: return .systemFont(ofSize: 16, weight: .bold)
+            case .L: return .systemFont(ofSize: 18, weight: .bold)
+            }
+        }
+
         var iconSize: CGSize {
             switch self {
             case .S: return CGSize(width: 22, height: 22)
@@ -127,7 +135,13 @@ public class CartActionButton: UIView {
         }
     }
 
-    public var size: Size = .L
+    public var size: Size = .L {
+        didSet {
+            countLabel.font = size.font
+            clearConstraints(without: constraints.filter { $0.firstAttribute == .width || $0.firstAttribute == .height })
+            setupConstraints()
+        }
+    }
 
     public var quatity: Int { Int(countLabel.text ?? "1") ?? 1 }
 
@@ -343,5 +357,16 @@ private extension UILabel {
         transition.duration = 0.25
         animation()
         layer.add(transition, forKey: direction.transitionKey)
+    }
+}
+
+// MARK: - UIView extension
+private extension UIView {
+    func clearConstraints(without protected: [NSLayoutConstraint] = []) {
+        for subview in subviews {
+            subview.clearConstraints()
+        }
+        let sub = Set(constraints).subtracting(Set(protected))
+        removeConstraints(Array(sub))
     }
 }
