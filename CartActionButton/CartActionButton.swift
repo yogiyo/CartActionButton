@@ -35,7 +35,7 @@ public class CartActionButton: UIView {
         }
     }
 
-    private let animateDuration = CGFloat(0.5)
+    private let animateDuration = CGFloat(0.25)
 
     private let defaultMinimumSize = CGSize(width: 34, height: 34)
 
@@ -51,15 +51,22 @@ public class CartActionButton: UIView {
         return view
     }()
 
-    /// 접힌상태에서는 카트 버튼, 펼쳐진 상태에서는 더하기 버튼
     private lazy var cartButton: UIButton! = {
         let button = UIButton(frame: .zero)
         button.setBackgroundImage(UIImage(named: "ic_cart"), for: .normal)
-        button.setBackgroundImage(UIImage(named: "ic_add"), for: .selected)
-        button.setBackgroundImage(UIImage(named: "ic_add"), for: [.selected, .highlighted])
         button.backgroundColor = .clear
         button.tintColor = UIColor(red: 250/255.0, green: 0, blue: 80.0/255.0, alpha: 1)
         button.addTarget(self, action: #selector(cartButtonAction(_:)), for: .touchUpInside)
+        return button
+    }()
+
+    private lazy var plusButton: UIButton! = {
+        let button = UIButton(frame: .zero)
+        button.setBackgroundImage(UIImage(named: "ic_add"), for: .normal)
+        button.backgroundColor = .clear
+        button.tintColor = UIColor(red: 250/255.0, green: 0, blue: 80.0/255.0, alpha: 1)
+        button.addTarget(self, action: #selector(plusButtonAction(_:)), for: .touchUpInside)
+        button.alpha = 0
         return button
     }()
 
@@ -93,6 +100,8 @@ public class CartActionButton: UIView {
 
     public var size: Size = .L
 
+    public var maximumCount = UInt(9)
+
     public override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
@@ -116,13 +125,20 @@ public class CartActionButton: UIView {
 private extension CartActionButton {
 
     @objc func cartButtonAction(_ sender: UIButton) {
-        if sender.isSelected {
-            let plused = (Int(countLabel.text ?? "1") ?? 1) + 1
-            countLabel.text = "\(min(plused, 99))"
-        } else {
-            expandButton(true)
+        expandButton(true)
+    }
+
+    @objc func plusButtonAction(_ sender: UIButton) {
+        guard let count = Int(countLabel.text ?? "1"), count < maximumCount else {
+            return
         }
 
+        let plused = UInt(count + 1)
+        countLabel.text = "\(min(plused, maximumCount))"
+
+        if plused == maximumCount {
+            plusButton.isEnabled = false
+        }
     }
 
     @objc func minusButtonAction(_ sender: UIButton) {
@@ -132,16 +148,43 @@ private extension CartActionButton {
         }
         let minused = count - 1
         countLabel.text = "\(max(minused, 1))"
+
+        if minused < maximumCount {
+            plusButton.isEnabled = true
+        }
     }
 }
 
 // MARK: - Private
 private extension CartActionButton {
 
+    func adjustContainerLeft(constant: CGFloat) {
+        let containerLeft = constraints.first {
+            $0.firstItem as? UIView == containerView && $0.firstAttribute == .left }
+        containerLeft?.constant = constant
+    }
+
+    func expandButton(_ expand: Bool) {
+        adjustContainerLeft(constant: expand ? 0 : bounds.width - bounds.height)
+        UIView.animate(withDuration: animateDuration, delay: 0, options: .curveEaseInOut) {
+            self.layoutIfNeeded()
+        }
+
+        UIView.transition(with: cartButton, duration: animateDuration, options: .transitionCrossDissolve) {
+            self.minusBtnContainerView.alpha = expand ? 1 : 0
+            self.cartButton.alpha = expand ? 0 : 1
+            self.plusButton.alpha = expand ? 1 : 0
+        }
+    }
+}
+
+// MARK: - Setup
+private extension CartActionButton {
     func setupView() {
         backgroundColor = .clear
         addSubview(containerView)
         containerView.addSubview(cartBtnContainerView)
+        cartBtnContainerView.addSubview(plusButton)
         cartBtnContainerView.addSubview(cartButton)
         containerView.addSubview(minusBtnContainerView)
         minusBtnContainerView.addSubview(minusButton)
@@ -152,6 +195,7 @@ private extension CartActionButton {
         containerView.translatesAutoresizingMaskIntoConstraints = false
         cartBtnContainerView.translatesAutoresizingMaskIntoConstraints = false
         cartButton.translatesAutoresizingMaskIntoConstraints = false
+        plusButton.translatesAutoresizingMaskIntoConstraints = false
         minusBtnContainerView.translatesAutoresizingMaskIntoConstraints = false
         minusButton.translatesAutoresizingMaskIntoConstraints = false
         countLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -172,6 +216,11 @@ private extension CartActionButton {
             cartButton.centerXAnchor.constraint(equalTo: cartBtnContainerView.centerXAnchor),
             cartButton.centerYAnchor.constraint(equalTo: cartBtnContainerView.centerYAnchor),
 
+            plusButton.widthAnchor.constraint(equalToConstant: size.iconSize.width),
+            plusButton.heightAnchor.constraint(equalToConstant: size.iconSize.height),
+            plusButton.centerXAnchor.constraint(equalTo: cartBtnContainerView.centerXAnchor),
+            plusButton.centerYAnchor.constraint(equalTo: cartBtnContainerView.centerYAnchor),
+
             minusBtnContainerView.widthAnchor.constraint(equalTo: containerView.heightAnchor),
             minusBtnContainerView.topAnchor.constraint(equalTo: containerView.topAnchor),
             minusBtnContainerView.leftAnchor.constraint(equalTo: containerView.leftAnchor),
@@ -187,35 +236,4 @@ private extension CartActionButton {
             countLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
         ])
     }
-
-    func adjustContainerLeft(constant: CGFloat) {
-        let containerLeft = constraints.first {
-            $0.firstItem as? UIView == containerView && $0.firstAttribute == .left }
-        containerLeft?.constant = constant
-    }
-
-    func expandButton(_ expand: Bool) {
-        adjustContainerLeft(constant: expand ? 0 : bounds.width - bounds.height)
-        UIView.animate(withDuration: animateDuration, delay: 0, options: .curveEaseInOut, animations: {
-            self.layoutIfNeeded()
-        }, completion: nil)
-
-        UIView.transition(with: cartButton, duration: animateDuration, options: .transitionCrossDissolve) {
-            self.cartButton.isSelected = expand
-            self.minusBtnContainerView.alpha = expand ? 1 : 0
-        }
-    }
 }
-
-//extension UIImage {
-//    static func from(color: UIColor) -> UIImage {
-//        let rect = CGRect(x: 0, y: 0, width: 1, height: 1)
-//        UIGraphicsBeginImageContext(rect.size)
-//        let context = UIGraphicsGetCurrentContext()
-//        context!.setFillColor(color.cgColor)
-//        context!.fill(rect)
-//        let img = UIGraphicsGetImageFromCurrentImageContext()
-//        UIGraphicsEndImageContext()
-//        return img!
-//    }
-//}
