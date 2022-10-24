@@ -1,2 +1,2 @@
-# CartActioinButton
-CartActioinButton
+# CartActionButton
+CartActionButton
