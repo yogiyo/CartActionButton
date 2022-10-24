@@ -89,6 +89,8 @@ public class CartActionButton: UIView {
         button.setBackgroundImage(UIImage(named: "ic_cart"), for: .normal)
         button.backgroundColor = .clear
         button.tintColor = UIColor(red: 250/255.0, green: 0, blue: 80.0/255.0, alpha: 1)
+        button.titleLabel?.font = size.boldFont
+        button.setTitleColor(.white, for: .normal)
         button.addTarget(self, action: #selector(cartButtonAction(_:)), for: .touchUpInside)
         return button
     }()
@@ -119,7 +121,7 @@ public class CartActionButton: UIView {
         let label = UILabel()
         label.textAlignment = .center
         label.font = size.font
-        label.text = "1"
+        label.text = "0"
         return label
     }()
 
@@ -138,12 +140,15 @@ public class CartActionButton: UIView {
     public var size: Size = .L {
         didSet {
             countLabel.font = size.font
+            cartButton.titleLabel?.font = size.boldFont
             clearConstraints(without: constraints.filter { $0.firstAttribute == .width || $0.firstAttribute == .height })
             setupConstraints()
         }
     }
 
-    public var quatity: Int { Int(countLabel.text ?? "1") ?? 1 }
+    public var quantity: Int { Int(countLabel.text ?? "0") ?? 0 }
+
+    public var isActive: Bool { quantity > 0 }
 
     public weak var delegate: CartActionButtonDelegate?
 
@@ -185,6 +190,7 @@ private extension CartActionButton {
 
     @objc func cartButtonAction(_ sender: UIButton) {
         expandButton(true)
+        plusButtonAction(plusButton)
     }
 
     @objc func plusButtonAction(_ sender: UIButton) {
@@ -207,6 +213,7 @@ private extension CartActionButton {
 
     @objc func minusButtonAction(_ sender: UIButton) {
         guard let count = Int(countLabel.text ?? "1"), count > 1 else {
+            countLabel.text = "0"
             expandButton(false)
             return
         }
@@ -235,6 +242,7 @@ private extension CartActionButton {
 
     func expandButton(_ expand: Bool) {
         adjustContainerLeft(constant: expand ? 0 : bounds.width - bounds.height)
+        adjustBackground()
         UIView.animate(withDuration: animateDuration, delay: 0, options: .curveEaseInOut, animations: {
             self.layoutIfNeeded()
         }, completion: { _ in
@@ -253,6 +261,18 @@ private extension CartActionButton {
             $0.firstItem as? UIView == containerView && $0.firstAttribute == .left }
         containerLeft?.constant = constant
     }
+
+    func adjustBackground() {
+        if isExpanded == false && isActive {
+            cartButton.setBackgroundImage(nil, for: .normal)
+            cartButton.setTitle("\(quantity)", for: .normal)
+            cartBtnContainerView.backgroundColor = tintColor
+        } else {
+            cartButton.setBackgroundImage(UIImage(named: "ic_cart"), for: .normal)
+            cartButton.setTitle(nil, for: .normal)
+            cartBtnContainerView.backgroundColor = .clear
+        }
+    }
 }
 
 // MARK: - Setup
@@ -261,6 +281,7 @@ private extension CartActionButton {
     func setupInitialViews(_ rect: CGRect) {
         containerView.layer.cornerRadius = rect.height / 2
         adjustContainerLeft(constant: rect.width - rect.height)
+        adjustBackground()
         minusBtnContainerView.alpha = 0
         cartButton.alpha = 1
         plusButton.alpha = 0
@@ -368,5 +389,19 @@ private extension UIView {
         }
         let sub = Set(constraints).subtracting(Set(protected))
         removeConstraints(Array(sub))
+    }
+}
+
+// MARK: - UIImage extension
+extension UIImage {
+    static func from(color: UIColor) -> UIImage {
+        let rect = CGRect(x: 0, y: 0, width: 1, height: 1)
+        UIGraphicsBeginImageContext(rect.size)
+        let context = UIGraphicsGetCurrentContext()
+        context!.setFillColor(color.cgColor)
+        context!.fill(rect)
+        let img = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return img!
     }
 }
