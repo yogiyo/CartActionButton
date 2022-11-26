@@ -86,7 +86,7 @@ public class CartActionButton: UIView {
     }()
     private lazy var cartButton: UIButton! = {
         let button = UIButton(frame: .zero)
-        button.setBackgroundImage(UIImage(named: "ic_cart"), for: .normal)
+        button.setBackgroundImage(UIImage(named: "ic_cart", in: Bundle.module, compatibleWith: nil), for: .normal)
         button.backgroundColor = .clear
         button.tintColor = UIColor(red: 250/255.0, green: 0, blue: 80.0/255.0, alpha: 1)
         button.titleLabel?.font = size.boldFont
@@ -96,7 +96,7 @@ public class CartActionButton: UIView {
     }()
     private lazy var plusButton: UIButton! = {
         let button = UIButton(frame: .zero)
-        button.setBackgroundImage(UIImage(named: "ic_add"), for: .normal)
+        button.setBackgroundImage(UIImage(named: "ic_add", in: Bundle.module, compatibleWith: nil), for: .normal)
         button.backgroundColor = .clear
         button.tintColor = UIColor(red: 250/255.0, green: 0, blue: 80.0/255.0, alpha: 1)
         button.addTarget(self, action: #selector(plusButtonAction(_:)), for: .touchUpInside)
@@ -111,7 +111,7 @@ public class CartActionButton: UIView {
     }()
     private lazy var minusButton: UIButton! = {
         let button = UIButton(frame: .zero)
-        button.setBackgroundImage(UIImage(named: "ic_remove"), for: .normal)
+        button.setBackgroundImage(UIImage(named: "ic_remove", in: Bundle.module, compatibleWith: nil), for: .normal)
         button.backgroundColor = .clear
         button.tintColor = UIColor(red: 250/255.0, green: 0, blue: 80.0/255.0, alpha: 1)
         button.addTarget(self, action: #selector(minusButtonAction(_:)), for: .touchUpInside)
@@ -268,7 +268,7 @@ private extension CartActionButton {
             cartButton.setTitle("\(quantity)", for: .normal)
             cartBtnContainerView.backgroundColor = tintColor
         } else {
-            cartButton.setBackgroundImage(UIImage(named: "ic_cart"), for: .normal)
+            cartButton.setBackgroundImage(UIImage(named: "ic_cart", in: Bundle.module, compatibleWith: nil), for: .normal)
             cartButton.setTitle(nil, for: .normal)
             cartBtnContainerView.backgroundColor = .clear
         }
