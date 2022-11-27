@@ -19,6 +19,7 @@ class ViewController: UIViewController {
         large.size = .L
         medium.size = .M
         small.size = .S
+        small.isUseCartButton = false
     }
 
 

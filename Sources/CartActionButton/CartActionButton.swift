@@ -164,6 +164,12 @@ public class CartActionButton: UIView {
 
     public var isActive: Bool { quantity > 0 }
 
+    public var isUseCartButton: Bool = true {
+        didSet {
+            setupButtonTransparency(whenExpand: false)
+        }
+    }
+
     public weak var delegate: CartActionButtonDelegate?
 
     // MARK: - Lifecycle
@@ -183,6 +189,7 @@ public class CartActionButton: UIView {
     public override func draw(_ rect: CGRect) {
         super.draw(rect)
         setupInitialViews(rect)
+        setupButtonTransparency(whenExpand: false)
     }
 
     public override func awakeFromNib() {
@@ -214,11 +221,11 @@ public class CartActionButton: UIView {
 private extension CartActionButton {
 
     @objc func cartButtonAction(_ sender: UIButton) {
-        expandButton(true)
         plusButtonAction(plusButton)
     }
 
     @objc func plusButtonAction(_ sender: UIButton) {
+        expandButton(true)
         guard let count = Int(countLabel.text ?? "1"), count < maximumCount else {
             return
         }
@@ -275,9 +282,7 @@ private extension CartActionButton {
         })
 
         UIView.transition(with: cartButton, duration: animateDuration, options: .transitionCrossDissolve) {
-            self.minusBtnContainerView.alpha = expand ? 1 : 0
-            self.cartButton.alpha = expand ? 0 : 1
-            self.plusButton.alpha = expand ? 1 : 0
+            self.setupButtonTransparency(whenExpand: expand)
         }
     }
 
@@ -305,9 +310,17 @@ private extension CartActionButton {
         containerView.layer.cornerRadius = rect.height / 2
         adjustContainerLeft(constant: rect.width - rect.height)
         adjustBackground()
-        minusBtnContainerView.alpha = 0
-        cartButton.alpha = 1
-        plusButton.alpha = 0
+    }
+
+    func setupButtonTransparency(whenExpand expand: Bool) {
+        minusBtnContainerView.alpha = expand ? 1 : 0
+        if isUseCartButton {
+            cartButton.alpha = expand ? 0 : 1
+            plusButton.alpha = expand ? 1 : 0
+        } else {
+            cartButton.alpha = 0
+            plusButton.alpha = 1
+        }
     }
 
     func setupView() {
