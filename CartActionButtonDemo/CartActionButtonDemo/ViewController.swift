@@ -6,12 +6,19 @@
 //
 
 import UIKit
+import CartActionButton
 
 class ViewController: UIViewController {
 
+    @IBOutlet var large: CartActionButton!
+    @IBOutlet var medium: CartActionButton!
+    @IBOutlet var small: CartActionButton!
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        large.size = .L
+        medium.size = .M
+        small.size = .S
     }
 
 

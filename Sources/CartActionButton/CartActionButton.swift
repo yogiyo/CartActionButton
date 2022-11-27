@@ -46,15 +46,15 @@ public class CartActionButton: UIView {
             switch self {
             case .S: return .systemFont(ofSize: 14)
             case .M: return .systemFont(ofSize: 16)
-            case .L: return .systemFont(ofSize: 18)
+            case .L: return .systemFont(ofSize: 16)
             }
         }
 
         var boldFont: UIFont {
             switch self {
-            case .S: return .systemFont(ofSize: 14, weight: .bold)
-            case .M: return .systemFont(ofSize: 16, weight: .bold)
-            case .L: return .systemFont(ofSize: 18, weight: .bold)
+            case .S: return .systemFont(ofSize: 14, weight: .regular)
+            case .M: return .systemFont(ofSize: 16, weight: .regular)
+            case .L: return .systemFont(ofSize: 16, weight: .regular)
             }
         }
 
@@ -62,7 +62,15 @@ public class CartActionButton: UIView {
             switch self {
             case .S: return CGSize(width: 22, height: 22)
             case .M: return CGSize(width: 24, height: 24)
-            case .L: return CGSize(width: 28, height: 28)
+            case .L: return CGSize(width: 24, height: 24)
+            }
+        }
+
+        var height: CGFloat {
+            switch self {
+            case .S: return 34
+            case .M: return 40
+            case .L: return 40
             }
         }
     }
@@ -79,9 +87,9 @@ public class CartActionButton: UIView {
         view.layer.masksToBounds = true
         return view
     }()
-    private lazy var cartBtnContainerView: UIView! = {
+    private lazy var plusBtnContainerView: UIView! = {
         let view = UIView(frame: .zero)
-        view.backgroundColor = .clear
+        view.backgroundColor = .white
         return view
     }()
     private lazy var cartButton: UIButton! = {
@@ -105,7 +113,7 @@ public class CartActionButton: UIView {
     }()
     private lazy var minusBtnContainerView: UIView! = {
         let view = UIView(frame: .zero)
-        view.backgroundColor = .clear
+        view.backgroundColor = .white
         view.alpha = 0
         return view
     }()
@@ -117,11 +125,17 @@ public class CartActionButton: UIView {
         button.addTarget(self, action: #selector(minusButtonAction(_:)), for: .touchUpInside)
         return button
     }()
+    private lazy var labelContainerView: UIView! = {
+        let view = UIView(frame: .zero)
+        view.backgroundColor = .clear
+        return view
+    }()
     private lazy var countLabel: UILabel! = {
         let label = UILabel()
         label.textAlignment = .center
         label.font = size.font
         label.text = "0"
+        label.backgroundColor = .clear
         return label
     }()
 
@@ -181,6 +195,17 @@ public class CartActionButton: UIView {
             cartButton.tintColor = tintColor
             plusButton.tintColor = tintColor
             minusButton.tintColor = tintColor
+        }
+    }
+
+    public override var backgroundColor: UIColor? {
+        get {
+            containerView.backgroundColor
+        }
+        set {
+            containerView.backgroundColor = newValue
+            plusBtnContainerView.backgroundColor = newValue
+            minusBtnContainerView.backgroundColor = newValue
         }
     }
 }
@@ -266,11 +291,9 @@ private extension CartActionButton {
         if isExpanded == false && isActive {
             cartButton.setBackgroundImage(nil, for: .normal)
             cartButton.setTitle("\(quantity)", for: .normal)
-            cartBtnContainerView.backgroundColor = tintColor
         } else {
             cartButton.setBackgroundImage(UIImage(named: "ic_cart", in: Bundle.module, compatibleWith: nil), for: .normal)
             cartButton.setTitle(nil, for: .normal)
-            cartBtnContainerView.backgroundColor = .clear
         }
     }
 }
@@ -288,60 +311,117 @@ private extension CartActionButton {
     }
 
     func setupView() {
-        backgroundColor = .clear
         addSubview(containerView)
-        containerView.addSubview(cartBtnContainerView)
-        cartBtnContainerView.addSubview(plusButton)
-        cartBtnContainerView.addSubview(cartButton)
+        containerView.addSubview(labelContainerView)
         containerView.addSubview(minusBtnContainerView)
+        containerView.addSubview(plusBtnContainerView)
+        labelContainerView.addSubview(countLabel)
         minusBtnContainerView.addSubview(minusButton)
-        containerView.addSubview(countLabel)
+        plusBtnContainerView.addSubview(plusButton)
+        plusBtnContainerView.addSubview(cartButton)
     }
 
     func setupConstraints() {
+        translatesAutoresizingMaskIntoConstraints = false
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        cartBtnContainerView.translatesAutoresizingMaskIntoConstraints = false
+        plusBtnContainerView.translatesAutoresizingMaskIntoConstraints = false
         cartButton.translatesAutoresizingMaskIntoConstraints = false
         plusButton.translatesAutoresizingMaskIntoConstraints = false
         minusBtnContainerView.translatesAutoresizingMaskIntoConstraints = false
         minusButton.translatesAutoresizingMaskIntoConstraints = false
+        labelContainerView.translatesAutoresizingMaskIntoConstraints = false
         countLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        NSLayoutConstraint.activate([
+        constraints.forEach {
+            if $0.firstAttribute == .height {
+                $0.constant = size.height
+            }
+        }
+
+        NSLayoutConstraint.activate(containerConstraints)
+        NSLayoutConstraint.activate(plusBtnContainerConstraints)
+        NSLayoutConstraint.activate(cartButtonConstraints)
+        NSLayoutConstraint.activate(plusButtonConstraints)
+        NSLayoutConstraint.activate(minusBtnContainerConstraints)
+        NSLayoutConstraint.activate(minusButtonConstraints)
+        NSLayoutConstraint.activate(labelContainerConstraints)
+        NSLayoutConstraint.activate(countLabelConstraints)
+    }
+
+    var containerConstraints: [NSLayoutConstraint] {
+        [
             containerView.topAnchor.constraint(equalTo: topAnchor),
             containerView.rightAnchor.constraint(equalTo: rightAnchor),
             containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
             containerView.leftAnchor.constraint(equalTo: leftAnchor),
+        ]
+    }
 
-            cartBtnContainerView.widthAnchor.constraint(equalTo: containerView.heightAnchor),
-            cartBtnContainerView.topAnchor.constraint(equalTo: containerView.topAnchor),
-            cartBtnContainerView.rightAnchor.constraint(equalTo: containerView.rightAnchor),
-            cartBtnContainerView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+    var plusBtnContainerConstraints: [NSLayoutConstraint] {
+        [
+            plusBtnContainerView.widthAnchor.constraint(equalTo: containerView.heightAnchor),
+            plusBtnContainerView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            plusBtnContainerView.rightAnchor.constraint(equalTo: containerView.rightAnchor),
+            plusBtnContainerView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+        ]
+    }
 
+    var cartButtonConstraints: [NSLayoutConstraint] {
+        [
             cartButton.widthAnchor.constraint(equalToConstant: size.iconSize.width),
             cartButton.heightAnchor.constraint(equalToConstant: size.iconSize.height),
-            cartButton.centerXAnchor.constraint(equalTo: cartBtnContainerView.centerXAnchor),
-            cartButton.centerYAnchor.constraint(equalTo: cartBtnContainerView.centerYAnchor),
+            cartButton.centerXAnchor.constraint(equalTo: plusBtnContainerView.centerXAnchor),
+            cartButton.centerYAnchor.constraint(equalTo: plusBtnContainerView.centerYAnchor),
+        ]
+    }
 
+    var plusButtonConstraints: [NSLayoutConstraint] {
+        [
             plusButton.widthAnchor.constraint(equalToConstant: size.iconSize.width),
             plusButton.heightAnchor.constraint(equalToConstant: size.iconSize.height),
-            plusButton.centerXAnchor.constraint(equalTo: cartBtnContainerView.centerXAnchor),
-            plusButton.centerYAnchor.constraint(equalTo: cartBtnContainerView.centerYAnchor),
+            plusButton.centerXAnchor.constraint(equalTo: plusBtnContainerView.centerXAnchor),
+            plusButton.centerYAnchor.constraint(equalTo: plusBtnContainerView.centerYAnchor),
+        ]
+    }
 
+    var minusBtnContainerConstraints: [NSLayoutConstraint] {
+        [
             minusBtnContainerView.widthAnchor.constraint(equalTo: containerView.heightAnchor),
             minusBtnContainerView.topAnchor.constraint(equalTo: containerView.topAnchor),
             minusBtnContainerView.leftAnchor.constraint(equalTo: containerView.leftAnchor),
             minusBtnContainerView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+        ]
+    }
 
+    var minusButtonConstraints: [NSLayoutConstraint] {
+        [
             minusButton.widthAnchor.constraint(equalToConstant: size.iconSize.width),
             minusButton.heightAnchor.constraint(equalToConstant: size.iconSize.height),
             minusButton.centerXAnchor.constraint(equalTo: minusBtnContainerView.centerXAnchor),
             minusButton.centerYAnchor.constraint(equalTo: minusBtnContainerView.centerYAnchor),
+        ]
+    }
 
-            countLabel.rightAnchor.constraint(equalTo: cartBtnContainerView.leftAnchor),
-            countLabel.leftAnchor.constraint(equalTo: minusBtnContainerView.rightAnchor),
-            countLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
-        ])
+    var labelContainerConstraints: [NSLayoutConstraint] {
+        [
+            labelContainerView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            labelContainerView.rightAnchor.constraint(equalTo: containerView.rightAnchor),
+            labelContainerView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            labelContainerView.leftAnchor.constraint(equalTo: containerView.leftAnchor),
+        ]
+    }
+
+    var countLabelConstraints: [NSLayoutConstraint] {
+        let labelLeft = countLabel.leftAnchor.constraint(equalTo: minusBtnContainerView.rightAnchor)
+        labelLeft.priority = .defaultHigh
+        let labelRight = countLabel.rightAnchor.constraint(equalTo: plusBtnContainerView.leftAnchor)
+        labelRight.priority = .defaultHigh
+        return [
+            countLabel.centerYAnchor.constraint(equalTo: labelContainerView.centerYAnchor),
+            countLabel.centerXAnchor.constraint(equalTo: labelContainerView.centerXAnchor),
+            labelLeft,
+            labelRight
+        ]
     }
 }
 
