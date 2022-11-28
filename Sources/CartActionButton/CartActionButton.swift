@@ -161,7 +161,13 @@ public class CartActionButton: UIView {
         }
     }
 
-    public var quantity: Int { Int(countLabel.text ?? "0") ?? 0 }
+    public var quantity: Int {
+        get { Int(countLabel.text ?? "0") ?? 0 }
+        set {
+            countLabel.text = "\(newValue)"
+            adjustContainerLeft(constant: 0)
+        }
+    }
 
     public var isActive: Bool { quantity > 0 }
 
@@ -190,7 +196,6 @@ public class CartActionButton: UIView {
     public override func draw(_ rect: CGRect) {
         super.draw(rect)
         setupInitialViews(rect)
-        setupButtonTransparency(whenExpand: false)
     }
 
     public override func awakeFromNib() {
@@ -277,7 +282,7 @@ private extension CartActionButton {
 
     func expandButton(_ expand: Bool) {
         adjustContainerLeft(constant: expand ? 0 : bounds.width - bounds.height)
-        adjustBackground()
+        adjustCartButtonBackground()
         UIView.animate(withDuration: animateDuration, delay: 0, options: .curveEaseInOut, animations: {
             self.layoutIfNeeded()
         }, completion: { _ in
@@ -295,7 +300,7 @@ private extension CartActionButton {
         containerLeft?.constant = constant
     }
 
-    func adjustBackground() {
+    func adjustCartButtonBackground() {
         if isExpanded == false && isActive {
             cartButton.setBackgroundImage(nil, for: .normal)
             cartButton.setTitle("\(quantity)", for: .normal)
@@ -310,9 +315,12 @@ private extension CartActionButton {
 private extension CartActionButton {
 
     func setupInitialViews(_ rect: CGRect) {
+        let shouldExpand = isActive && isUseCartButton == false
+        setupButtonTransparency(whenExpand: shouldExpand)
         containerView.layer.cornerRadius = rect.height / 2
-        adjustContainerLeft(constant: rect.width - rect.height)
-        adjustBackground()
+        let left = shouldExpand ? 0 : rect.width - rect.height
+        adjustContainerLeft(constant: left)
+        adjustCartButtonBackground()
     }
 
     func setupButtonTransparency(whenExpand expand: Bool) {

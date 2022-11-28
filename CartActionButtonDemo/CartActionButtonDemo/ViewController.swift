@@ -18,10 +18,12 @@ class ViewController: UIViewController, CartActionButtonDelegate {
         super.viewDidLoad()
         large.size = .L
         medium.size = .M
+        medium.quantity = 5
         small.size = .S
         small.isUseCartButton = false
         small.maximumCount = 10
         small.delegate = self
+        small.quantity = 5
     }
 
     func cartActionButton(_ cart: CartActionButton, didChangeQuantity: CartActionButton.QuantityChange) {

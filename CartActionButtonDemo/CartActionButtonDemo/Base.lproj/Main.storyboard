@@ -58,9 +58,9 @@
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="large" destination="XPG-JK-Izn" id="xFR-2s-6cl"/>
-                        <outlet property="medium" destination="7Bg-EB-xTt" id="EFi-Du-hQO"/>
-                        <outlet property="small" destination="ejS-L1-Tmn" id="DMg-fI-A5F"/>
+                        <outlet property="large" destination="XPG-JK-Izn" id="dAc-xv-RC2"/>
+                        <outlet property="medium" destination="7Bg-EB-xTt" id="Bda-Xy-KwZ"/>
+                        <outlet property="small" destination="ejS-L1-Tmn" id="j3f-LY-lwH"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
