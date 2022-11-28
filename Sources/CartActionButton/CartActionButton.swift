@@ -171,6 +171,7 @@ public class CartActionButton: UIView {
 
     public var isActive: Bool { quantity > 0 }
 
+    @IBInspectable
     public var isUseCartButton: Bool = true {
         didSet {
             setupButtonTransparency(whenExpand: false)
