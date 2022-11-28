@@ -22,6 +22,7 @@ public class CartActionButton: UIView {
     public enum QuantityChange {
         case up(Int)
         case down(Int)
+        case max(Int)
     }
 
     // MARK: - Size
@@ -226,7 +227,13 @@ private extension CartActionButton {
 
     @objc func plusButtonAction(_ sender: UIButton) {
         expandButton(true)
-        guard let count = Int(countLabel.text ?? "1"), count < maximumCount else {
+        guard let count = Int(countLabel.text ?? "1"), count <= maximumCount else {
+            return
+        }
+
+        if count == maximumCount {
+            delegate?.cartActionButton(self, didChangeQuantity: .max(count))
+            plusButton.isEnabled = false
             return
         }
 
@@ -237,10 +244,6 @@ private extension CartActionButton {
             countLabel.text = "\(min(plused, maximumCount))"
         }
         delegate?.cartActionButton(self, didChangeQuantity: qc)
-
-        if plused == maximumCount {
-            plusButton.isEnabled = false
-        }
     }
 
     @objc func minusButtonAction(_ sender: UIButton) {
@@ -445,18 +448,21 @@ private extension UILabel {
     enum RollingDirection: String {
         case up
         case down
+        case none
 
         init(qc: CartActionButton.QuantityChange) {
             switch qc {
             case .up: self = .up
             case .down: self = .down
+            case .max: self = .none
             }
         }
 
-        var transitionSubType: CATransitionSubtype {
+        var transitionSubType: CATransitionSubtype? {
             switch self {
             case .up: return .fromTop
             case .down: return .fromBottom
+            case .none: return nil
             }
         }
 
