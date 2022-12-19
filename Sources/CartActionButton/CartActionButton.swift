@@ -74,11 +74,20 @@ public class CartActionButton: UIView {
             case .L: return 40
             }
         }
+
+        var disabledFont: UIFont {
+            switch self {
+            case .S: return .systemFont(ofSize: 11, weight: .bold)
+            case .M: return .systemFont(ofSize: 13, weight: .bold)
+            case .L: return .systemFont(ofSize: 13, weight: .bold)
+            }
+        }
     }
 
     // MARK: - Private Const
 
     private let animateDuration = CGFloat(0.25)
+    private let disabledColor = UIColor(red: 0.4, green: 0.4, blue: 0.4, alpha: 1.0)
 
     // MARK: - Private Subview
 
@@ -93,23 +102,20 @@ public class CartActionButton: UIView {
         view.backgroundColor = .white
         return view
     }()
-    private lazy var cartButton: UIButton! = {
-        let button = UIButton(frame: .zero)
-        button.setBackgroundImage(UIImage(named: "ic_cart", in: Bundle.module, compatibleWith: nil), for: .normal)
-        button.backgroundColor = .clear
-        button.tintColor = UIColor(red: 250/255.0, green: 0, blue: 80.0/255.0, alpha: 1)
-        button.titleLabel?.font = size.boldFont
-        button.setTitleColor(.white, for: .normal)
-        button.addTarget(self, action: #selector(cartButtonAction(_:)), for: .touchUpInside)
-        return button
-    }()
     private lazy var plusButton: UIButton! = {
         let button = UIButton(frame: .zero)
         button.setBackgroundImage(UIImage(named: "ic_add", in: Bundle.module, compatibleWith: nil), for: .normal)
+        button.setBackgroundImage(UIImage.from(color: .clear), for: .selected)
+        button.setTitleColor(.clear, for: .normal)
+        button.setTitleColor(.white, for: .selected)
+        button.setTitleColor(.white, for: .disabled)
+        button.setTitle(nil, for: .normal)
+        button.setTitle(nil, for: .selected)
+        button.titleLabel?.font = size.disabledFont
         button.backgroundColor = .clear
         button.tintColor = UIColor(red: 250/255.0, green: 0, blue: 80.0/255.0, alpha: 1)
         button.addTarget(self, action: #selector(plusButtonAction(_:)), for: .touchUpInside)
-        button.alpha = 0
+        button.alpha = 1
         return button
     }()
     private lazy var minusBtnContainerView: UIView! = {
@@ -155,7 +161,7 @@ public class CartActionButton: UIView {
     public var size: Size = .L {
         didSet {
             countLabel.font = size.font
-            cartButton.titleLabel?.font = size.boldFont
+            plusButton.titleLabel?.font = size.disabledFont
             clearConstraints(without: constraints.filter { $0.firstAttribute == .width || $0.firstAttribute == .height })
             setupConstraints()
         }
@@ -164,6 +170,8 @@ public class CartActionButton: UIView {
     public var quantity: Int {
         get { Int(countLabel.text ?? "0") ?? 0 }
         set {
+            guard isEnabled else { return }
+            plusButton.setTitle("\(newValue)", for: .selected)
             countLabel.text = "\(newValue)"
             adjustContainerLeft(constant: 0)
         }
@@ -171,10 +179,10 @@ public class CartActionButton: UIView {
 
     public var isActive: Bool { quantity > 0 }
 
-    @IBInspectable
-    public var isUseCartButton: Bool = true {
+    public var isEnabled: Bool = true {
         didSet {
-            setupButtonTransparency(whenExpand: false)
+            plusButton.isEnabled = isEnabled
+            plusButton.setTitle("품절", for: .disabled)
         }
     }
 
@@ -206,7 +214,6 @@ public class CartActionButton: UIView {
 
     public override var tintColor: UIColor! {
         didSet {
-            cartButton.tintColor = tintColor
             plusButton.tintColor = tintColor
             minusButton.tintColor = tintColor
         }
@@ -214,12 +221,10 @@ public class CartActionButton: UIView {
 
     public override var backgroundColor: UIColor? {
         get {
-            containerView.backgroundColor
+            super.backgroundColor
         }
         set {
-            containerView.backgroundColor = newValue
-            plusBtnContainerView.backgroundColor = newValue
-            minusBtnContainerView.backgroundColor = newValue
+            super.backgroundColor = .clear
         }
     }
 }
@@ -283,16 +288,13 @@ private extension CartActionButton {
 
     func expandButton(_ expand: Bool) {
         adjustContainerLeft(constant: expand ? 0 : bounds.width - bounds.height)
-        adjustCartButtonBackground()
         UIView.animate(withDuration: animateDuration, delay: 0, options: .curveEaseInOut, animations: {
             self.layoutIfNeeded()
+            self.setupButtonTransparency(whenExpand: expand)
+            self.adjustPlusButton(isExpand: expand)
         }, completion: { _ in
             self.delegate?.cartActionButton(self, didExpandChange: expand)
         })
-
-        UIView.transition(with: cartButton, duration: animateDuration, options: .transitionCrossDissolve) {
-            self.setupButtonTransparency(whenExpand: expand)
-        }
     }
 
     func adjustContainerLeft(constant: CGFloat) {
@@ -301,14 +303,21 @@ private extension CartActionButton {
         containerLeft?.constant = constant
     }
 
-    func adjustCartButtonBackground() {
-        if isExpanded == false && isActive {
-            cartButton.setBackgroundImage(nil, for: .normal)
-            cartButton.setTitle("\(quantity)", for: .normal)
-        } else {
-            cartButton.setBackgroundImage(UIImage(named: "ic_cart", in: Bundle.module, compatibleWith: nil), for: .normal)
-            cartButton.setTitle(nil, for: .normal)
+    func adjustPlusButton(isExpand: Bool) {
+        guard isEnabled else {
+            let color = disabledColor
+            containerView.backgroundColor = color
+            plusBtnContainerView.backgroundColor = color
+            minusBtnContainerView.backgroundColor = color
+            return
         }
+        let isSelected = isExpand == false && isActive
+        plusButton.isSelected = isSelected
+
+        let color: UIColor = isSelected ? tintColor : .white
+        containerView.backgroundColor = color
+        plusBtnContainerView.backgroundColor = color
+        minusBtnContainerView.backgroundColor = color
     }
 }
 
@@ -316,23 +325,15 @@ private extension CartActionButton {
 private extension CartActionButton {
 
     func setupInitialViews(_ rect: CGRect) {
-        let shouldExpand = isActive && isUseCartButton == false
-        setupButtonTransparency(whenExpand: shouldExpand)
+        setupButtonTransparency(whenExpand: isActive)
         containerView.layer.cornerRadius = rect.height / 2
-        let left = shouldExpand ? 0 : rect.width - rect.height
-        adjustContainerLeft(constant: left)
-        adjustCartButtonBackground()
+        adjustContainerLeft(constant: rect.width - rect.height)
+        adjustPlusButton(isExpand: false)
     }
 
     func setupButtonTransparency(whenExpand expand: Bool) {
         minusBtnContainerView.alpha = expand ? 1 : 0
-        if isUseCartButton {
-            cartButton.alpha = expand ? 0 : 1
-            plusButton.alpha = expand ? 1 : 0
-        } else {
-            cartButton.alpha = 0
-            plusButton.alpha = 1
-        }
+        countLabel.alpha = expand ? 1 : 0
     }
 
     func setupView() {
@@ -343,14 +344,12 @@ private extension CartActionButton {
         labelContainerView.addSubview(countLabel)
         minusBtnContainerView.addSubview(minusButton)
         plusBtnContainerView.addSubview(plusButton)
-        plusBtnContainerView.addSubview(cartButton)
     }
 
     func setupConstraints() {
         translatesAutoresizingMaskIntoConstraints = false
         containerView.translatesAutoresizingMaskIntoConstraints = false
         plusBtnContainerView.translatesAutoresizingMaskIntoConstraints = false
-        cartButton.translatesAutoresizingMaskIntoConstraints = false
         plusButton.translatesAutoresizingMaskIntoConstraints = false
         minusBtnContainerView.translatesAutoresizingMaskIntoConstraints = false
         minusButton.translatesAutoresizingMaskIntoConstraints = false
@@ -365,7 +364,6 @@ private extension CartActionButton {
 
         NSLayoutConstraint.activate(containerConstraints)
         NSLayoutConstraint.activate(plusBtnContainerConstraints)
-        NSLayoutConstraint.activate(cartButtonConstraints)
         NSLayoutConstraint.activate(plusButtonConstraints)
         NSLayoutConstraint.activate(minusBtnContainerConstraints)
         NSLayoutConstraint.activate(minusButtonConstraints)
@@ -388,15 +386,6 @@ private extension CartActionButton {
             plusBtnContainerView.topAnchor.constraint(equalTo: containerView.topAnchor),
             plusBtnContainerView.rightAnchor.constraint(equalTo: containerView.rightAnchor),
             plusBtnContainerView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-        ]
-    }
-
-    var cartButtonConstraints: [NSLayoutConstraint] {
-        [
-            cartButton.widthAnchor.constraint(equalToConstant: size.iconSize.width),
-            cartButton.heightAnchor.constraint(equalToConstant: size.iconSize.height),
-            cartButton.centerXAnchor.constraint(equalTo: plusBtnContainerView.centerXAnchor),
-            cartButton.centerYAnchor.constraint(equalTo: plusBtnContainerView.centerYAnchor),
         ]
     }
 
@@ -437,15 +426,10 @@ private extension CartActionButton {
     }
 
     var countLabelConstraints: [NSLayoutConstraint] {
-        let labelLeft = countLabel.leftAnchor.constraint(equalTo: minusBtnContainerView.rightAnchor)
-        labelLeft.priority = .defaultHigh
-        let labelRight = countLabel.rightAnchor.constraint(equalTo: plusBtnContainerView.leftAnchor)
-        labelRight.priority = .defaultHigh
-        return [
+        [
             countLabel.centerYAnchor.constraint(equalTo: labelContainerView.centerYAnchor),
-            countLabel.centerXAnchor.constraint(equalTo: labelContainerView.centerXAnchor),
-            labelLeft,
-            labelRight
+            countLabel.leftAnchor.constraint(equalTo: labelContainerView.leftAnchor),
+            countLabel.rightAnchor.constraint(equalTo: labelContainerView.rightAnchor),
         ]
     }
 }
