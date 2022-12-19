@@ -427,7 +427,8 @@ private extension CartActionButton {
 
     var countLabelConstraints: [NSLayoutConstraint] {
         [
-            countLabel.centerYAnchor.constraint(equalTo: labelContainerView.centerYAnchor),
+            countLabel.topAnchor.constraint(equalTo: labelContainerView.topAnchor),
+            countLabel.bottomAnchor.constraint(equalTo: labelContainerView.bottomAnchor),
             countLabel.leftAnchor.constraint(equalTo: labelContainerView.leftAnchor),
             countLabel.rightAnchor.constraint(equalTo: labelContainerView.rightAnchor),
         ]
