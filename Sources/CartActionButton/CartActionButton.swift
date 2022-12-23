@@ -106,6 +106,7 @@ public class CartActionButton: UIView {
         let button = UIButton(frame: .zero)
         button.setBackgroundImage(UIImage(named: "ic_add", in: Bundle.module, compatibleWith: nil), for: .normal)
         button.setBackgroundImage(UIImage.from(color: .clear), for: .selected)
+        button.setBackgroundImage(UIImage.from(color: .clear), for: .disabled)
         button.setTitleColor(.clear, for: .normal)
         button.setTitleColor(.white, for: .selected)
         button.setTitleColor(.white, for: .disabled)
