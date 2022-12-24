@@ -106,12 +106,16 @@ public class CartActionButton: UIView {
         let button = UIButton(frame: .zero)
         button.setBackgroundImage(UIImage(named: "ic_add", in: Bundle.module, compatibleWith: nil), for: .normal)
         button.setBackgroundImage(UIImage.from(color: .clear), for: .selected)
+        button.setBackgroundImage(UIImage.from(color: .clear), for: [.selected, .disabled])
         button.setBackgroundImage(UIImage.from(color: .clear), for: .disabled)
         button.setTitleColor(.clear, for: .normal)
         button.setTitleColor(.white, for: .selected)
+        button.setTitleColor(.white, for: [.selected, .disabled])
         button.setTitleColor(.white, for: .disabled)
         button.setTitle(nil, for: .normal)
         button.setTitle(nil, for: .selected)
+        button.setTitle("품절", for: [.selected, .disabled])
+        button.setTitle("품절", for: .disabled)
         button.titleLabel?.font = size.disabledFont
         button.backgroundColor = .clear
         button.tintColor = UIColor(red: 250/255.0, green: 0, blue: 80.0/255.0, alpha: 1)
@@ -171,10 +175,9 @@ public class CartActionButton: UIView {
     public var quantity: Int {
         get { Int(countLabel.text ?? "0") ?? 0 }
         set {
-            guard isEnabled else { return }
             plusButton.setTitle("\(newValue)", for: .selected)
             countLabel.text = "\(newValue)"
-            adjustContainerLeft(constant: 0)
+            setupInitialViews(bounds)
         }
     }
 
@@ -183,7 +186,7 @@ public class CartActionButton: UIView {
     public var isEnabled: Bool = true {
         didSet {
             plusButton.isEnabled = isEnabled
-            plusButton.setTitle("품절", for: .disabled)
+            setupInitialViews(bounds)
         }
     }
 
