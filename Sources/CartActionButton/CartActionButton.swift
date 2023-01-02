@@ -231,6 +231,22 @@ public class CartActionButton: UIView {
             super.backgroundColor = .clear
         }
     }
+
+    public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard isExpanded else {
+            return super.hitTest(point, with: event)
+        }
+        guard point.y > 0 && point.y < bounds.height else {
+            return super.hitTest(point, with: event)
+        }
+        if point.x < CGRectGetMidX(bounds) {
+            return minusButton
+        }
+        if point.x >= CGRectGetMidX(bounds) {
+            return plusButton
+        }
+        return super.hitTest(point, with: event)
+    }
 }
 
 // MARK: - Action
