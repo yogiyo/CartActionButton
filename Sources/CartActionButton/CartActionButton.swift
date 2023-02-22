@@ -357,6 +357,11 @@ private extension CartActionButton {
     }
 
     func setupView() {
+        layer.shadowOffset = CGSize(width: 1, height: 2)
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowRadius = 6
+        layer.shadowOpacity = 0.15
+
         addSubview(containerView)
         containerView.addSubview(labelContainerView)
         containerView.addSubview(minusBtnContainerView)
