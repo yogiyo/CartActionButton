@@ -19,7 +19,8 @@ class ViewController: UIViewController, CartActionButtonDelegate {
         large.size = .L
         medium.size = .M
         medium.quantity = 3
-        medium.isEnabled = false
+        medium.isInStock = false
+        medium.isSellable = false
         small.size = .S
         small.maximumCount = 10
         small.delegate = self

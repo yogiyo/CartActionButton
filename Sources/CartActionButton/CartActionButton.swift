@@ -116,6 +116,8 @@ public class CartActionButton: UIView {
         button.setTitle(nil, for: .selected)
         button.setTitle("품절", for: [.selected, .disabled])
         button.setTitle("품절", for: .disabled)
+        button.titleLabel?.numberOfLines = 2
+        button.titleLabel?.adjustsFontSizeToFitWidth = true
         button.titleLabel?.font = size.disabledFont
         button.backgroundColor = .clear
         button.tintColor = UIColor(red: 250/255.0, green: 0, blue: 80.0/255.0, alpha: 1)
@@ -183,11 +185,28 @@ public class CartActionButton: UIView {
 
     public var isActive: Bool { quantity > 0 }
 
-    public var isEnabled: Bool = true {
+    public var isInStock: Bool = true {
         didSet {
             plusButton.isEnabled = isEnabled
+            plusButton.setTitle("품절", for: [.selected, .disabled])
+            plusButton.setTitle("품절", for: .disabled)
+
             setupInitialViews(bounds)
         }
+    }
+
+    public var isSellable: Bool = true {
+        didSet {
+            plusButton.isEnabled = isEnabled
+            plusButton.setTitle("구매\n불가", for: [.selected, .disabled])
+            plusButton.setTitle("구매\n불가", for: .disabled)
+
+            setupInitialViews(bounds)
+        }
+    }
+
+    private var isEnabled: Bool {
+        isSellable && isInStock
     }
 
     public weak var delegate: CartActionButtonDelegate?
