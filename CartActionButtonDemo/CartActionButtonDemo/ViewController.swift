@@ -17,22 +17,20 @@ class ViewController: UIViewController, CartActionButtonDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         large.size = .L
+        large.delegate = self
         medium.size = .M
         medium.quantity = 3
         medium.isInStock = false
         medium.isSellable = false
+        medium.delegate = self
         small.size = .S
         small.maximumCount = 10
         small.delegate = self
         small.quantity = 3
     }
 
-    func cartActionButton(_ cart: CartActionButton, didChangeQuantity: CartActionButton.QuantityChange) {
-        print(#function, didChangeQuantity)
-    }
-
-    func cartActionButton(_ cart: CartActionButton, didPreventChange: CartActionButton.QuantityChange) {
-        print(#function, didPreventChange)
+    func cartActionButton(_ cart: CartActionButton, didChange quantity: CartActionButton.QuantityChange) {
+        print(#function, quantity)
     }
 
     func cartActionButton(_ cart: CartActionButton, didExpandChange isExpanded: Bool) {

@@ -9,8 +9,7 @@ import UIKit
 
 // MARK: - CartActionButtonDelegate
 public protocol CartActionButtonDelegate: AnyObject {
-    func cartActionButton(_ cart: CartActionButton, didChangeQuantity: CartActionButton.QuantityChange)
-    func cartActionButton(_ cart: CartActionButton, didPreventChange: CartActionButton.QuantityChange)
+    func cartActionButton(_ cart: CartActionButton, didChange quantity: CartActionButton.QuantityChange)
     func cartActionButton(_ cart: CartActionButton, didExpandChange isExpanded: Bool)
 }
 
@@ -282,7 +281,7 @@ private extension CartActionButton {
         }
 
         if count == maximumCount {
-            delegate?.cartActionButton(self, didChangeQuantity: .max(count))
+            delegate?.cartActionButton(self, didChange: .max(count))
             plusButton.isEnabled = false
             return
         }
@@ -293,12 +292,13 @@ private extension CartActionButton {
         countLabel.excuteRolling(direction: .init(qc: qc)) {
             countLabel.text = "\(min(plused, maximumCount))"
         }
-        delegate?.cartActionButton(self, didChangeQuantity: qc)
+        delegate?.cartActionButton(self, didChange: qc)
     }
 
     @objc func minusButtonAction(_ sender: UIButton) {
         guard let count = Int(countLabel.text ?? "1"), count > 1 else {
             countLabel.text = "0"
+            delegate?.cartActionButton(self, didChange: .down(0))
             expandButton(false)
             return
         }
@@ -308,7 +308,7 @@ private extension CartActionButton {
         countLabel.excuteRolling(direction: .init(qc: qc)) {
             countLabel.text = "\(max(minused, 1))"
         }
-        delegate?.cartActionButton(self, didChangeQuantity: qc)
+        delegate?.cartActionButton(self, didChange: qc)
 
         if minused < maximumCount {
             plusButton.isEnabled = true
