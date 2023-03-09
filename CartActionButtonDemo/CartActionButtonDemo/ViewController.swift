@@ -33,8 +33,8 @@ class ViewController: UIViewController, CartActionButtonDelegate {
         print(#function, quantity)
     }
 
-    func cartActionButton(_ cart: CartActionButton, didExpandChange isExpanded: Bool) {
-        print(#function, isExpanded)
+    func cartActionButtonShouldExpandButton(_ cart: CartActionButton) -> Bool {
+        true
     }
 }
 

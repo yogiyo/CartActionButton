@@ -9,8 +9,8 @@ import UIKit
 
 // MARK: - CartActionButtonDelegate
 public protocol CartActionButtonDelegate: AnyObject {
+    func cartActionButtonShouldExpandButton(_ cart: CartActionButton) -> Bool
     func cartActionButton(_ cart: CartActionButton, didChange quantity: CartActionButton.QuantityChange)
-    func cartActionButton(_ cart: CartActionButton, didExpandChange isExpanded: Bool)
 }
 
 // MARK: -
@@ -275,6 +275,7 @@ private extension CartActionButton {
     }
 
     @objc func plusButtonAction(_ sender: UIButton) {
+        guard delegate?.cartActionButtonShouldExpandButton(self) == true else { return }
         expandButton(true)
         guard let count = Int(countLabel.text ?? "1"), count <= maximumCount else {
             return
@@ -331,9 +332,7 @@ private extension CartActionButton {
             self.layoutIfNeeded()
             self.setupButtonTransparency(whenExpand: expand)
             self.adjustPlusButton(isExpand: expand)
-        }, completion: { _ in
-            self.delegate?.cartActionButton(self, didExpandChange: expand)
-        })
+        }, completion: nil)
     }
 
     func adjustContainerLeft(constant: CGFloat) {
