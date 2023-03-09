@@ -366,8 +366,9 @@ private extension CartActionButton {
     func setupInitialViews(_ rect: CGRect) {
         setupButtonTransparency(whenExpand: isActive)
         containerView.layer.cornerRadius = rect.height / 2
-        adjustContainerLeft(constant: rect.width - rect.height)
-        adjustPlusButton(isExpand: false)
+        let shouldExpand = isActive && isEnabled
+        adjustContainerLeft(constant: shouldExpand ? 0 : rect.width - rect.height)
+        adjustPlusButton(isExpand: shouldExpand)
     }
 
     func setupButtonTransparency(whenExpand expand: Bool) {
