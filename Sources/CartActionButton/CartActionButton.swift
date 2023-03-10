@@ -149,6 +149,7 @@ public class CartActionButton: UIView {
         label.font = size.font
         label.text = "0"
         label.backgroundColor = .clear
+        label.textColor = .black
         return label
     }()
 
@@ -479,7 +480,6 @@ private extension CartActionButton {
     }
 }
 
-// MARK: -
 // MARK: - UILabel extension
 private extension UILabel {
 
