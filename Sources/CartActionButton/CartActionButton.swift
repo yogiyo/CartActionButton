@@ -104,17 +104,17 @@ public class CartActionButton: UIView {
     private lazy var plusButton: UIButton! = {
         let button = UIButton(frame: .zero)
         button.setBackgroundImage(UIImage(named: "ic_add", in: Bundle.module, compatibleWith: nil), for: .normal)
-        button.setBackgroundImage(UIImage.from(color: .clear), for: .selected)
-        button.setBackgroundImage(UIImage.from(color: .clear), for: [.selected, .disabled])
-        button.setBackgroundImage(UIImage.from(color: .clear), for: .disabled)
+//        button.setBackgroundImage(UIImage.from(color: .clear), for: .selected)
+//        button.setBackgroundImage(UIImage.from(color: .clear), for: [.selected, .disabled])
+//        button.setBackgroundImage(UIImage.from(color: .clear), for: .disabled)
         button.setTitleColor(.clear, for: .normal)
         button.setTitleColor(.white, for: .selected)
         button.setTitleColor(.white, for: [.selected, .disabled])
         button.setTitleColor(.white, for: .disabled)
         button.setTitle(nil, for: .normal)
         button.setTitle(nil, for: .selected)
-        button.setTitle("품절", for: [.selected, .disabled])
-        button.setTitle("품절", for: .disabled)
+//        button.setTitle("품절", for: [.selected, .disabled])
+//        button.setTitle("품절", for: .disabled)
         button.titleLabel?.numberOfLines = 2
         button.titleLabel?.adjustsFontSizeToFitWidth = true
         button.titleLabel?.font = size.disabledFont
@@ -188,9 +188,12 @@ public class CartActionButton: UIView {
     public var isInStock: Bool = true {
         didSet {
             plusButton.isEnabled = isEnabled
-            plusButton.setTitle("품절", for: [.selected, .disabled])
-            plusButton.setTitle("품절", for: .disabled)
-
+            if isInStock == false {
+                plusButton.setTitle("품절", for: [.selected, .disabled])
+                plusButton.setTitle("품절", for: .disabled)
+                plusButton.setBackgroundImage(UIImage.from(color: .clear), for: [.selected, .disabled])
+                plusButton.setBackgroundImage(UIImage.from(color: .clear), for: .disabled)
+            }
             setupInitialViews(bounds)
         }
     }
@@ -198,9 +201,12 @@ public class CartActionButton: UIView {
     public var isSellable: Bool = true {
         didSet {
             plusButton.isEnabled = isEnabled
-            plusButton.setTitle("구매\n불가", for: [.selected, .disabled])
-            plusButton.setTitle("구매\n불가", for: .disabled)
-
+            if isSellable == false {
+                plusButton.setTitle("구매\n불가", for: [.selected, .disabled])
+                plusButton.setTitle("구매\n불가", for: .disabled)
+                plusButton.setBackgroundImage(UIImage.from(color: .clear), for: [.selected, .disabled])
+                plusButton.setBackgroundImage(UIImage.from(color: .clear), for: .disabled)
+            }
             setupInitialViews(bounds)
         }
     }
@@ -277,7 +283,9 @@ private extension CartActionButton {
 
     @objc func plusButtonAction(_ sender: UIButton) {
         guard delegate?.cartActionButtonShouldExpandButton(self) == true else { return }
-        expandButton(true)
+        if isExpanded == false {
+            expandButton(true)
+        }
         guard let count = Int(countLabel.text ?? "1"), count <= maximumCount else {
             return
         }
@@ -301,7 +309,9 @@ private extension CartActionButton {
         guard let count = Int(countLabel.text ?? "1"), count > 1 else {
             countLabel.text = "0"
             delegate?.cartActionButton(self, didChange: .down(0))
-            expandButton(false)
+            if isExpanded {
+                expandButton(false)
+            }
             return
         }
 
