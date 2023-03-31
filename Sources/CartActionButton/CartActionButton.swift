@@ -103,18 +103,14 @@ public class CartActionButton: UIView {
     }()
     private lazy var plusButton: UIButton! = {
         let button = UIButton(frame: .zero)
-        button.setBackgroundImage(UIImage(named: "ic_add", in: Bundle.module, compatibleWith: nil), for: .normal)
-//        button.setBackgroundImage(UIImage.from(color: .clear), for: .selected)
-//        button.setBackgroundImage(UIImage.from(color: .clear), for: [.selected, .disabled])
-//        button.setBackgroundImage(UIImage.from(color: .clear), for: .disabled)
+        button.setBackgroundImage(UIImage(named: "ic_add_primary_22", in: Bundle.module, compatibleWith: nil), for: .normal)
+        button.setBackgroundImage(UIImage(named: "ic_add_disabled_primary_22", in: Bundle.module, compatibleWith: nil), for: .disabled)
         button.setTitleColor(.clear, for: .normal)
         button.setTitleColor(.white, for: .selected)
         button.setTitleColor(.white, for: [.selected, .disabled])
         button.setTitleColor(.white, for: .disabled)
         button.setTitle(nil, for: .normal)
         button.setTitle(nil, for: .selected)
-//        button.setTitle("품절", for: [.selected, .disabled])
-//        button.setTitle("품절", for: .disabled)
         button.titleLabel?.numberOfLines = 2
         button.titleLabel?.adjustsFontSizeToFitWidth = true
         button.titleLabel?.font = size.disabledFont
@@ -132,7 +128,7 @@ public class CartActionButton: UIView {
     }()
     private lazy var minusButton: UIButton! = {
         let button = UIButton(frame: .zero)
-        button.setBackgroundImage(UIImage(named: "ic_remove", in: Bundle.module, compatibleWith: nil), for: .normal)
+        button.setBackgroundImage(UIImage(named: "ic_remove_primary_22", in: Bundle.module, compatibleWith: nil), for: .normal)
         button.backgroundColor = .clear
         button.tintColor = UIColor(red: 250/255.0, green: 0, blue: 80.0/255.0, alpha: 1)
         button.addTarget(self, action: #selector(minusButtonAction(_:)), for: .touchUpInside)
@@ -188,11 +184,10 @@ public class CartActionButton: UIView {
     public var isInStock: Bool = true {
         didSet {
             plusButton.isEnabled = isEnabled
-            if isInStock == false {
-                plusButton.setTitle("품절", for: [.selected, .disabled])
-                plusButton.setTitle("품절", for: .disabled)
-                plusButton.setBackgroundImage(UIImage.from(color: .clear), for: [.selected, .disabled])
-                plusButton.setBackgroundImage(UIImage.from(color: .clear), for: .disabled)
+            if isInStock {
+                setupPlusButton()
+            } else {
+                setupStockOutPlusButton()
             }
             setupInitialViews(bounds)
         }
@@ -201,11 +196,10 @@ public class CartActionButton: UIView {
     public var isSellable: Bool = true {
         didSet {
             plusButton.isEnabled = isEnabled
-            if isSellable == false {
-                plusButton.setTitle("구매\n불가", for: [.selected, .disabled])
-                plusButton.setTitle("구매\n불가", for: .disabled)
-                plusButton.setBackgroundImage(UIImage.from(color: .clear), for: [.selected, .disabled])
-                plusButton.setBackgroundImage(UIImage.from(color: .clear), for: .disabled)
+            if isSellable {
+                setupPlusButton()
+            } else {
+                setupDesellablePlusButton()
             }
             setupInitialViews(bounds)
         }
@@ -311,6 +305,7 @@ private extension CartActionButton {
             delegate?.cartActionButton(self, didChange: .down(0))
             if isExpanded {
                 expandButton(false)
+                plusButton.isEnabled = true
             }
             return
         }
@@ -372,6 +367,27 @@ private extension CartActionButton {
 
 // MARK: - Setup
 private extension CartActionButton {
+
+    func setupPlusButton() {
+        plusButton.setTitle(nil, for: [.selected, .disabled])
+        plusButton.setTitle(nil, for: .disabled)
+        plusButton.setBackgroundImage(UIImage(named: "ic_add_primary_22", in: Bundle.module, compatibleWith: nil), for: .normal)
+        plusButton.setBackgroundImage(UIImage(named: "ic_add_disabled_primary_22", in: Bundle.module, compatibleWith: nil), for: .disabled)
+    }
+
+    func setupStockOutPlusButton() {
+        plusButton.setTitle("품절", for: [.selected, .disabled])
+        plusButton.setTitle("품절", for: .disabled)
+        plusButton.setBackgroundImage(UIImage.from(color: .clear), for: [.selected, .disabled])
+        plusButton.setBackgroundImage(UIImage.from(color: .clear), for: .disabled)
+    }
+
+    func setupDesellablePlusButton() {
+        plusButton.setTitle("구매\n불가", for: [.selected, .disabled])
+        plusButton.setTitle("구매\n불가", for: .disabled)
+        plusButton.setBackgroundImage(UIImage.from(color: .clear), for: [.selected, .disabled])
+        plusButton.setBackgroundImage(UIImage.from(color: .clear), for: .disabled)
+    }
 
     func setupInitialViews(_ rect: CGRect) {
         setupButtonTransparency(whenExpand: isActive)

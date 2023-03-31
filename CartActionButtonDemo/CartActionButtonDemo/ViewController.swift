@@ -18,6 +18,9 @@ class ViewController: UIViewController, CartActionButtonDelegate {
         super.viewDidLoad()
         large.size = .L
         large.delegate = self
+        large.isInStock = true
+        large.maximumCount = 1
+
         medium.size = .M
         medium.quantity = 3
         medium.isInStock = false
