@@ -19,15 +19,16 @@ class ViewController: UIViewController, CartActionButtonDelegate {
         large.size = .L
         large.delegate = self
         large.isInStock = true
-        large.maximumCount = 1
+        large.maximumCount = 3
 
         medium.size = .M
         medium.quantity = 3
         medium.isInStock = false
         medium.isSellable = false
         medium.delegate = self
+
         small.size = .S
-        small.maximumCount = 10
+        small.maximumCount = 3
         small.delegate = self
         small.quantity = 3
     }

@@ -176,6 +176,7 @@ public class CartActionButton: UIView {
             plusButton.setTitle("\(newValue)", for: .selected)
             countLabel.text = "\(newValue)"
             setupInitialViews(bounds)
+            plusButton.isEnabled = quantity < maximumCount
         }
     }
 
@@ -280,13 +281,7 @@ private extension CartActionButton {
         if isExpanded == false {
             expandButton(true)
         }
-        guard let count = Int(countLabel.text ?? "1"), count <= maximumCount else {
-            return
-        }
-
-        if count == maximumCount {
-            delegate?.cartActionButton(self, didChange: .max(count))
-            plusButton.isEnabled = false
+        guard let count = Int(countLabel.text ?? "1"), count < maximumCount else {
             return
         }
 
@@ -297,6 +292,11 @@ private extension CartActionButton {
             countLabel.text = "\(min(plused, maximumCount))"
         }
         delegate?.cartActionButton(self, didChange: qc)
+
+        if plused == maximumCount {
+            delegate?.cartActionButton(self, didChange: .max(count))
+            plusButton.isEnabled = false
+        }
     }
 
     @objc func minusButtonAction(_ sender: UIButton) {
