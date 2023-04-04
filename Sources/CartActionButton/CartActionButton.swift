@@ -175,7 +175,7 @@ public class CartActionButton: UIView {
             plusButton.setTitle("\(newValue)", for: .selected)
             countLabel.text = "\(newValue)"
             setupInitialViews(bounds)
-            plusButton.isEnabled = quantity < maximumCount
+            plusButton.isEnabled = isEnabledPlusButton
         }
     }
 
@@ -183,7 +183,7 @@ public class CartActionButton: UIView {
 
     public var isInStock: Bool = true {
         didSet {
-            plusButton.isEnabled = isEnabled
+            plusButton.isEnabled = isEnabledPlusButton
             if isInStock {
                 setupPlusButton()
             } else {
@@ -195,7 +195,7 @@ public class CartActionButton: UIView {
 
     public var isSellable: Bool = true {
         didSet {
-            plusButton.isEnabled = isEnabled
+            plusButton.isEnabled = isEnabledPlusButton
             if isSellable {
                 setupPlusButton()
             } else {
@@ -203,6 +203,10 @@ public class CartActionButton: UIView {
             }
             setupInitialViews(bounds)
         }
+    }
+
+    private var isEnabledPlusButton: Bool {
+        isEnabled && quantity < maximumCount
     }
 
     private var isEnabled: Bool {
