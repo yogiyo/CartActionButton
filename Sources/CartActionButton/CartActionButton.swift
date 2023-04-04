@@ -21,7 +21,6 @@ public class CartActionButton: UIView {
     public enum QuantityChange {
         case up(Int)
         case down(Int)
-        case max(Int)
     }
 
     // MARK: - Size
@@ -294,7 +293,6 @@ private extension CartActionButton {
         delegate?.cartActionButton(self, didChange: qc)
 
         if plused == maximumCount {
-            delegate?.cartActionButton(self, didChange: .max(count))
             plusButton.isEnabled = false
         }
     }
@@ -518,7 +516,6 @@ private extension UILabel {
             switch qc {
             case .up: self = .up
             case .down: self = .down
-            case .max: self = .none
             }
         }
 
