@@ -288,7 +288,7 @@ private extension CartActionButton {
 
     @objc func plusButtonAction(_ sender: UIButton) {
         guard delegate?.cartActionButtonShouldExpandButton(self) == true else { return }
-        guard delegate?.checkCartOver100() == false else { return }
+        guard delegate?.checkNumberShouldIncrease() == false else { return }
         if isExpanded == false {
             expandButton(true)
         }
