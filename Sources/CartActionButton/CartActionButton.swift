@@ -11,11 +11,11 @@ import UIKit
 public protocol CartActionButtonDelegate: AnyObject {
     func cartActionButtonShouldExpandButton(_ cart: CartActionButton) -> Bool
     func cartActionButton(_ cart: CartActionButton, didChange quantity: CartActionButton.QuantityChange)
-    func checkCartOver100() -> Bool
+    func checkNumberShouldIncrease() -> Bool
 }
 
 public extension CartActionButtonDelegate {
-    func checkCartOver100() -> Bool {
+    func checkNumberShouldIncrease() -> Bool {
         false
     }
 }
