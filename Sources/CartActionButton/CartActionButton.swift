@@ -11,6 +11,13 @@ import UIKit
 public protocol CartActionButtonDelegate: AnyObject {
     func cartActionButtonShouldExpandButton(_ cart: CartActionButton) -> Bool
     func cartActionButton(_ cart: CartActionButton, didChange quantity: CartActionButton.QuantityChange)
+    func checkNumberShouldIncrease() -> Bool
+}
+
+public extension CartActionButtonDelegate {
+    func checkNumberShouldIncrease() -> Bool {
+        false
+    }
 }
 
 // MARK: -
@@ -281,6 +288,7 @@ private extension CartActionButton {
 
     @objc func plusButtonAction(_ sender: UIButton) {
         guard delegate?.cartActionButtonShouldExpandButton(self) == true else { return }
+        guard delegate?.checkNumberShouldIncrease() == false else { return }
         if isExpanded == false {
             expandButton(true)
         }
