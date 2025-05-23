@@ -264,6 +264,10 @@ public class CartActionButton: UIView {
 
     public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         guard isExpanded else {
+            let pointInPlusContainer = plusBtnContainerView.convert(point, from: self)
+            if plusBtnContainerView.bounds.contains(pointInPlusContainer) {
+                return plusButton
+            }
             return super.hitTest(point, with: event)
         }
         guard point.y > 0 && point.y < bounds.height else {
